@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int           @id @default(autoincrement())
+  email     String        @unique
+  password  String
+  name      String?
+  contents  UserContent[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model UserContent {
+  id        Int           @id @default(autoincrement())
+  tmdbId    String
+  title     String?
+  type      ContentType
+  status    ContentStatus @default(WATCHLIST)
+  rating    Int?
+  userId    Int
+  user      User          @relation(fields: [userId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([userId, tmdbId])
+}
+
+enum ContentType {
+  MOVIE
+  TV
+}
+
+enum ContentStatus {
+  WATCHLIST
+  WATCHED
+  DROPPED
+}
