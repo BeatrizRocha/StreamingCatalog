@@ -32,7 +32,6 @@ export class AuthService {
       name,
     });
 
-    // Remove password from response
     const { password: _, ...result } = user;
     return result;
   }

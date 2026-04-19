@@ -18,12 +18,10 @@ describe('AuthController (e2e)', () => {
     await app.init();
 
     prisma = app.get<PrismaService>(PrismaService);
-    // Cleanup test user if exists
     await prisma.user.deleteMany({ where: { email: 'e2e@test.com' } });
   });
 
   afterAll(async () => {
-    // Final cleanup
     await prisma.user.deleteMany({ where: { email: 'e2e@test.com' } });
     await app.close();
   });
