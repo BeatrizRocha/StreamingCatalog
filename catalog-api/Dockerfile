@@ -7,17 +7,11 @@ RUN apt-get update && apt-get install -y openssl libssl-dev
 # Create app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy project files
+# Copy all files first (to ensure schema.prisma is available for postinstall)
 COPY . .
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Install dependencies (will run postinstall: prisma generate)
+RUN npm ci
 
 # Build the app
 RUN npm run build
