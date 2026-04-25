@@ -1,10 +1,15 @@
 # StreamingCatalog 🎬
 
-![Status](https://img.shields.io/badge/Status-Foundation_Complete-brightgreen)
+![Status](https://img.shields.io/badge/Status-Cloud_Integrated-brightgreen)
+![CI/CD](https://img.shields.io/badge/CI/CD-Active-blue)
 ![Node](https://img.shields.io/badge/Backend-NestJS_11-red)
 ![Database](https://img.shields.io/badge/Database-PostgreSQL_|_Redis-blue)
 
 O **StreamingCatalog** é uma plataforma full-stack para gerenciamento e descoberta de conteúdo audiovisual. Este projeto demonstra uma arquitetura moderna de **BFF (Backend For Frontend)** focada em performance, segurança e testabilidade.
+
+## 📂 Documentação Detalhada
+- [Arquitetura de Infraestrutura (Cloud)](docs/architecture/infrastructure.md)
+- [Fluxo de Autenticação](docs/architecture/auth.md)
 
 ## 🏗️ Estrutura do Projeto
 
