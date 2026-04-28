@@ -60,7 +60,7 @@ O Swagger estará em `http://localhost:3000/api/docs`.
 
 ## 🧪 Testes
 
-Garantimos a qualidade através de testes automatizados:
+Garanto a qualidade através de testes automatizados:
 
 ```bash
 # Testes de Unidade

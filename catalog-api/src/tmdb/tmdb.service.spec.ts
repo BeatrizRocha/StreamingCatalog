@@ -51,7 +51,6 @@ describe('TmdbService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        // @ts-ignore necessary structural mock
         config: { headers: {} as any },
       };
 

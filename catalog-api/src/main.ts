@@ -7,10 +7,8 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for frontend integration
   app.enableCors();
 
-  // Global Config
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -19,10 +17,8 @@ async function bootstrap() {
     }),
   );
 
-  // Global Exception Filter
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Swagger Setup
   const config = new DocumentBuilder()
     .setTitle('Streaming Catalog API')
     .setDescription('The Streaming Catalog API documentation')

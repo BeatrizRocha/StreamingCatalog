@@ -36,7 +36,7 @@ O sistema de autenticação utiliza JSON Web Token (JWT) seguindo o padrão **st
 - `JWT_SECRET`: Chave mestre para assinatura dos tokens.
 - `JWT_EXPIRES_IN`: Tempo de expiração (ex: `1d`).
 
-## Testes e Isolamento
+## Meus Testes e Isolamento
 - **Unitários**: `auth.service.spec.ts` (lógica de hash e validação usando mocks de `UserService` e `JwtService`).
 - **E2E**: `test/auth.e2e-spec.ts` (validação de ponta a ponta).
-- **Isolamento**: Utilizando um banco de dados dedicado (`streaming_catalog_test`) criado e migrado automaticamente via `jest-e2e.json` (`globalSetup`). Isso garante que o banco de desenvolvimento nunca seja afetado pelos testes.
+- **Isolamento**: Utilizo um banco de dados dedicado (`streaming_catalog_test`) criado e migrado automaticamente via `jest-e2e.json` (`globalSetup`). Garanto assim que o banco de desenvolvimento nunca seja afetado pelos testes.

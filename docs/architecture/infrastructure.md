@@ -9,7 +9,7 @@ Este documento descreve o ecossistema de infraestrutura que sustenta o **Streami
 | **Backend (API)** | [Render](https://render.com) | Free | Container Docker rodando o NestJS. |
 | **Frontend** | [Vercel](https://vercel.com) | Hobby | React/Vite com deployment automático. |
 | **Banco de Dados** | [Neon](https://neon.tech) | Free | PostgreSQL 17 com Connection Pooling. |
-| **Cache & Redis** | [Upstash](https://upstash.com) | Free | Redis Serverless para cache do TMDb. |
+| **Cache & Redis** | [Upstash](https://upstash.com) | Free | Redis Serverless para meu cache do TMDb. |
 
 ---
 

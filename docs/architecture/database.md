@@ -28,10 +28,10 @@ erDiagram
     }
 ```
 
-## Escolhas Arquiteturais
-- **Prisma ORM**: Escolhido pela excelente integração com TypeScript, geração de tipos automática e facilidade em migrações.
-- **Enums**: Utilizados para `ContentType` e `ContentStatus` para garantir consistência dos dados no nível do banco.
-- **Unique Constraint**: A restrição `@@unique([userId, tmdbId])` impede que um usuário adicione o mesmo filme/série duas vezes à sua lista.
+## Minhas Escolhas Arquiteturais
+- **Prisma ORM**: Escolhi o Prisma pela excelente integração com TypeScript, geração de tipos automática e facilidade em migrações.
+- **Enums**: Utilizei enums para `ContentType` e `ContentStatus` para garantir consistência dos dados no nível do banco.
+- **Unique Constraint**: Criei a restrição `@@unique([userId, tmdbId])` para impedir que um usuário adicione o mesmo filme/série duas vezes à sua lista.
 
 ## Como Visualizar os Dados
 Para uma verificação visual rápida, você pode rodar:
