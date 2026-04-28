@@ -14,6 +14,7 @@ import * as Joi from 'joi';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
       validationSchema: Joi.object({
         PORT: Joi.number().default(3000),
         DATABASE_URL: Joi.string().required(),

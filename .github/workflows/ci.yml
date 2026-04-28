@@ -58,3 +58,4 @@ jobs:
           JWT_EXPIRES_IN: "1d"
           PORT: 3001
           TMDB_ACCESS_TOKEN: "fake-ci-token-for-joi-validation"
+          REDIS_URL: "redis://localhost:6380"
