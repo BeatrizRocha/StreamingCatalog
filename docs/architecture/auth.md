@@ -32,6 +32,11 @@ O sistema de autenticação utiliza JSON Web Token (JWT) seguindo o padrão **st
 - O `JwtAuthGuard` valida a assinatura do token usando a `JWT_SECRET` do `.env`.
 - Se válido, o NestJS injeta os dados do usuário no objeto `request.user`.
 
+### 4. DX Refinement: `@CurrentUser()`
+- Utilizo um decorator customizado para extrair o usuário diretamente do objeto `Request`.
+- Isso remove a necessidade de acessar o `req.user` manualmente e evita o uso do tipo `any` nos controllers.
+- O decorator permite extrair campos específicos (ex: `@CurrentUser('id')`) ou o objeto completo.
+
 ## Configuração (Environment)
 - `JWT_SECRET`: Chave mestre para assinatura dos tokens.
 - `JWT_EXPIRES_IN`: Tempo de expiração (ex: `1d`).
