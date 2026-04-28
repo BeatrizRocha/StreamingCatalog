@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
 import { TmdbService } from './tmdb.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +10,7 @@ import { AxiosResponse } from 'axios';
 describe('TmdbService', () => {
   let service: TmdbService;
   let httpService: HttpService;
+  let loggerSpy: jest.SpyInstance;
 
   const mockConfigService = {
     get: jest.fn().mockImplementation((key: string) => {
@@ -33,10 +35,12 @@ describe('TmdbService', () => {
 
     service = module.get<TmdbService>(TmdbService);
     httpService = module.get<HttpService>(HttpService);
+    loggerSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    loggerSpy.mockRestore();
   });
 
   it('should be defined', () => {
