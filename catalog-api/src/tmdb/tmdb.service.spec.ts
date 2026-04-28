@@ -5,6 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { of, throwError } from 'rxjs';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { AxiosResponse } from 'axios';
 
 describe('TmdbService', () => {
@@ -24,12 +25,18 @@ describe('TmdbService', () => {
     get: jest.fn(),
   };
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TmdbService,
         { provide: HttpService, useValue: mockHttpService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: CACHE_MANAGER, useValue: mockCacheManager },
       ],
     }).compile();
 
@@ -84,6 +91,63 @@ describe('TmdbService', () => {
       await expect(service.get('/fail-route')).rejects.toThrow(
         new HttpException('Failed to fetch data from TMDb', HttpStatus.BAD_GATEWAY),
       );
+    });
+
+    it('should return cached data if available', async () => {
+      const mockData = { id: 1, title: 'Cached Movie' };
+      mockCacheManager.get.mockResolvedValueOnce(mockData);
+
+      const result = await service.get('/movie/1');
+
+      expect(mockCacheManager.get).toHaveBeenCalled();
+      expect(mockHttpService.get).not.toHaveBeenCalled();
+      expect(result).toEqual(mockData);
+    });
+
+    it('should fallback to API if cache.get fails', async () => {
+      const mockData = { id: 1, title: 'Fresh Movie' };
+      const mockAxiosResponse: AxiosResponse = {
+        data: mockData,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: { headers: {} as any },
+      };
+
+      mockCacheManager.get.mockRejectedValueOnce(new Error('Redis Down'));
+      jest.spyOn(httpService, 'get').mockReturnValueOnce(of(mockAxiosResponse));
+      const loggerWarnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+
+      const result = await service.get('/movie/1');
+
+      expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Cache lookup failed'));
+      expect(mockHttpService.get).toHaveBeenCalled();
+      expect(result).toEqual(mockData);
+      
+      loggerWarnSpy.mockRestore();
+    });
+
+    it('should still return data if cache.set fails', async () => {
+      const mockData = { id: 1, title: 'Fresh Movie' };
+      const mockAxiosResponse: AxiosResponse = {
+        data: mockData,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: { headers: {} as any },
+      };
+
+      mockCacheManager.get.mockResolvedValueOnce(null);
+      jest.spyOn(httpService, 'get').mockReturnValueOnce(of(mockAxiosResponse));
+      mockCacheManager.set.mockRejectedValueOnce(new Error('Redis Down'));
+      const loggerWarnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+
+      const result = await service.get('/movie/1');
+
+      expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to save to cache'));
+      expect(result).toEqual(mockData);
+
+      loggerWarnSpy.mockRestore();
     });
   });
 });
