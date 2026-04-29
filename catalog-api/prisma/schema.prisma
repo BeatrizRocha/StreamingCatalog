@@ -33,7 +33,7 @@ model UserContent {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  @@unique([userId, tmdbId, type])
+  @@unique([userId, tmdbId, type], name: "userId_tmdbId_type")
 }
 
 enum ContentType {
