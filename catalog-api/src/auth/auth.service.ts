@@ -18,6 +18,10 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const { email, password, name } = registerDto;
+    
+    if (!email || !password) {
+      throw new ConflictException('Email and password are required');
+    }
 
     const existingUser = await this.userService.findByEmail(email);
     if (existingUser) {
@@ -38,6 +42,10 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
+
+    if (!email || !password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     const user = await this.userService.findByEmail(email);
     if (!user) {

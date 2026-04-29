@@ -29,14 +29,55 @@ describe('UserService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should find user by email', async () => {
-    const user = { id: 1, email: 'test@test.com' };
-    mockPrismaService.user.findUnique.mockResolvedValue(user);
+  describe('findByEmail', () => {
+    it('should find user by email', async () => {
+      const expectedUser = { id: 1, email: 'test@test.com' };
+      mockPrismaService.user.findUnique.mockResolvedValue(expectedUser);
 
-    const result = await service.findByEmail('test@test.com');
-    expect(result).toEqual(user);
-    expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-      where: { email: 'test@test.com' },
+      const result = await service.findByEmail('test@test.com');
+      expect(result).toEqual(expectedUser);
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { email: 'test@test.com' },
+      });
+    });
+
+    it('should return null if user is not found', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      const result = await service.findByEmail('notfound@test.com');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findById', () => {
+    it('should find user by id', async () => {
+      const expectedUser = { id: 1, email: 'test@test.com' };
+      mockPrismaService.user.findUnique.mockResolvedValue(expectedUser);
+
+      const result = await service.findById(1);
+      expect(result).toEqual(expectedUser);
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+    });
+
+    it('should return null if user is not found', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      const result = await service.findById(999);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('create', () => {
+    it('should create a user with provided data', async () => {
+      const creationData = { email: 'new@test.com', password: 'hash', name: 'New' };
+      const expectedUser = { id: 2, ...creationData };
+      mockPrismaService.user.create.mockResolvedValue(expectedUser);
+
+      const result = await service.create(creationData);
+      expect(result).toEqual(expectedUser);
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
+        data: creationData,
+      });
     });
   });
 });

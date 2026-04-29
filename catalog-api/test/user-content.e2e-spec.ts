@@ -22,7 +22,6 @@ describe('UserContentController (e2e)', () => {
 
     prisma = app.get<PrismaService>(PrismaService);
 
-    // Setup: Create test user and get token
     const email = 'usercontent-e2e@test.com';
     await prisma.user.deleteMany({ where: { email } });
     
@@ -94,7 +93,7 @@ describe('UserContentController (e2e)', () => {
         tmdbId: '69478',
         type: ContentType.TV,
         status: ContentStatus.WATCHED,
-        rating: 10, // Invalid: max is 5
+        rating: 10, 
       };
 
       await request(app.getHttpServer())

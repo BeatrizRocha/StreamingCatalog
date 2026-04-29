@@ -34,7 +34,7 @@ import * as Joi from 'joi';
       useFactory: (configService: ConfigService): any => {
         const redisUrl = configService.get<string>('REDIS_URL');
         if (process.env.NODE_ENV === 'test' || !redisUrl) {
-          return {}; // Default in-memory store
+          return {};
         }
         return {
           stores: [new KeyvRedis(redisUrl)],
