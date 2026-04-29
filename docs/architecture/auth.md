@@ -1,47 +1,32 @@
-# Documentação de Autenticação (Auth Flow)
+# Minha Arquitetura de Autenticação e Segurança (Auth Flow)
 
 ## Visão Geral
-O sistema de autenticação utiliza JSON Web Token (JWT) seguindo o padrão **stateless**. As sessões não são armazenadas no banco de dados, garantindo maior escalabilidade.
+Eu projetei o sistema de autenticação utilizando JSON Web Token (JWT) seguindo o padrão **stateless**. Escolhi esse caminho para que a aplicação pudesse escalar sem depender de sessões armazenadas do lado do servidor.
 
-## Componentes Técnicos
-- **Passport.js**: Middleware padrão para integração de estratégias de autenticação no NestJS.
-- **Bcrypt**: Utilizado para hashing de senhas com um fator de salt de 10.
-- **JWT**: Tokens assinados com `HS256`.
+## Minhas Escolhas Técnicas
+- **Passport.js**: Utilizei como o middleware padrão para gerenciar minhas estratégias de autenticação no NestJS.
+- **Bcrypt**: Apliquei para o hashing de senhas com um fator de salt de 10, garantindo segurança contra ataques de força bruta.
+- **JWT**: Emiti tokens assinados com o algoritmo `HS256`.
 
-## Fluxo de Autenticação
+## Fluxo que Implementei
 
 ### 1. Registro (`POST /auth/register`)
-- Recebe `email`, `password` e `name`.
-- Valida se o email já existe.
-- Hasheia a senha antes de salvar no PostgreSQL via Prisma.
-- Retorna o usuário criado (sem a senha).
+- Eu valido se o email já existe para evitar duplicatas.
+- Hasheio a senha de forma segura antes de persistir no PostgreSQL.
+- Retorno apenas os dados públicos do usuário.
 
-### 2. Login (`POST /auth/login`)
-- Valida as credenciais.
-- Se válidas, emite um JWT contendo no payload:
-  ```json
-  {
-    "sub": "id-do-usuario",
-    "email": "email-do-usuario"
-  }
-  ```
-- O token tem validade de **1 dia**.
+### 2. Login e Emissão de Token (`POST /auth/login`)
+- Eu valido as credenciais e, se corretas, emito um JWT com validade de **1 dia**.
 
-### 3. Autorização (JWT Strategy)
-- O cliente deve enviar o token no header `Authorization: Bearer <token>`.
-- O `JwtAuthGuard` valida a assinatura do token usando a `JWT_SECRET` do `.env`.
-- Se válido, o NestJS injeta os dados do usuário no objeto `request.user`.
+### 3. Minha Camada de Segurança (Rate Limiting)
+- Eu adicionei o `@nestjs/throttler` para proteger meus endpoints. 
+- Implementei um limite global de **10 requisições por minuto** por IP, mitigando ataques de DoS e tentativas de login maliciosas.
 
 ### 4. DX Refinement: `@CurrentUser()`
-- Utilizo um decorator customizado para extrair o usuário diretamente do objeto `Request`.
-- Isso remove a necessidade de acessar o `req.user` manualmente e evita o uso do tipo `any` nos controllers.
-- O decorator permite extrair campos específicos (ex: `@CurrentUser('id')`) ou o objeto completo.
+- Para facilitar o desenvolvimento e manter as rotas limpas, eu criei um decorator customizado.
+- Ele me permite extrair o ID do usuário (ou o objeto completo) de forma tipada diretamente nos parâmetros do controller, sem precisar manipular o objeto `Request` manualmente.
 
-## Configuração (Environment)
-- `JWT_SECRET`: Chave mestre para assinatura dos tokens.
-- `JWT_EXPIRES_IN`: Tempo de expiração (ex: `1d`).
-
-## Meus Testes e Isolamento
-- **Unitários**: `auth.service.spec.ts` (lógica de hash e validação usando mocks de `UserService` e `JwtService`).
-- **E2E**: `test/auth.e2e-spec.ts` (validação de ponta a ponta).
-- **Isolamento**: Utilizo um banco de dados dedicado (`streaming_catalog_test`) criado e migrado automaticamente via `jest-e2e.json` (`globalSetup`). Garanto assim que o banco de desenvolvimento nunca seja afetado pelos testes.
+## Estratégia de Testes e Isolamento
+- **Unitários**: Eu validei toda a lógica de hash e emissão isolando as dependências com mocks.
+- **E2E**: Criei testes de ponta a ponta que validam o fluxo completo de registro e login.
+- **Banco de Dados de Teste**: Eu configuro um banco dedicado (`streaming_catalog_test`) que é criado e destruído automaticamente. Isso garante que meu banco de desenvolvimento permaneça intacto durante os meus testes.

@@ -1,43 +1,44 @@
-# Arquitetura de Infraestrutura em Nuvem (Cloud Architecture) ☁️
+# Minha Infraestrutura em Nuvem (Cloud Architecture) ☁️
 
-Este documento descreve o ecossistema de infraestrutura que sustenta o **StreamingCatalog**.
+Neste documento, eu descrevo como escolhi e configurei o ecossistema que sustenta o **StreamingCatalog**. Priorizei serviços serverless e modernos que permitem escalabilidade com custo zero para este estágio do projeto.
 
-## Provedores e Serviços
+## Meus Provedores e Serviços
 
-| Componente | Provedor | Plano | Descrição |
-| :--- | :--- | :--- | :--- |
-| **Backend (API)** | [Render](https://render.com) | Free | Container Docker rodando o NestJS. |
-| **Frontend** | [Vercel](https://vercel.com) | Hobby | React/Vite com deployment automático. |
-| **Banco de Dados** | [Neon](https://neon.tech) | Free | PostgreSQL 17 com Connection Pooling. |
-| **Cache & Redis** | [Upstash](https://upstash.com) | Free | Redis Serverless para meu cache do TMDb. |
-
----
-
-## Estratégia de CI/CD (GitHub Actions)
-
-O pipeline de Integração Contínua (CI) é disparado em todo commit e Pull Request.
-
-- **Fluxo**:
-    1.  **Lint e Build**: Garante que o código compila e segue as regras de estilo.
-    2.  **Testes de Unidade**: Valida as regras de negócio de forma isolada.
-    3.  **Testes E2E**: Sobe um container Postgres efêmero no GitHub e testa o fluxo completo de API.
-- **Continuous Deployment**: Apenas commits na branch `main` são implantados automaticamente nos provedores de nuvem.
+| Componente | Provedor | Escolha Técnica |
+| :--- | :--- | :--- |
+| **Backend (API)** | [Render](https://render.com) | Escolhi por hospedar containers Docker de forma transparente. |
+| **Frontend** | [Vercel](https://vercel.com) | Utilizo para o deployment instantâneo do React via GitHub. |
+| **Banco de Dados** | [Neon](https://neon.tech) | Escolhi pelo suporte a PostgreSQL serverless com escalonamento automático. |
+| **Cache & Redis** | [Upstash](https://upstash.com) | Utilizo pela resiliência e latência mínima em ambientes de borda. |
 
 ---
 
-## Gerenciamento de Credenciais (Segurança)
+## Estratégia de CI/CD que Implementei
 
-As chaves sensíveis nunca são armazenadas no repositório:
-- **CI/CD**: Utiliza **GitHub Secrets**.
-- **Produção**: As variáveis são configuradas diretamente nos painéis do Render e Vercel.
+Eu configurei o **GitHub Actions** para ser o meu garantidor de qualidade. Todo commit que eu faço passa por um pipeline rigoroso:
 
-Principais chaves utilizadas:
-- `DATABASE_URL`: Conexão com o Neon.
-- `REDIS_URL`: Conexão com o Upstash.
-- `JWT_SECRET`: Chave para assinatura de tokens.
+- **Meu Fluxo Automático**:
+    1. **Lint e Build**: Eu verifico se o código segue meus padrões e se compila sem erros.
+    2. **Testes de Unidade**: Valido minhas regras de negócio isoladamente.
+    3. **Testes E2E**: Eu subo um banco PostgreSQL temporário dentro do pipeline para testar o sistema como se estivesse em produção.
+    4. **Auto-Deploy**: Se todos os testes passarem, eu autorizo o deploy automático na `main`.
 
 ---
 
-## Considerações de Ambiente Gratuito
-- **Render Cold Start**: A API entra em repouso após 15 minutos de inatividade. A primeira requisição após esse período pode demorar até 40s para ser respondida.
-- **Neon Autoscaling**: O banco escala a zero quando não está em uso, preservando recursos.
+## Como eu Gerencio a Segurança
+
+Eu nunca armazeno chaves sensíveis no meu código. Gerencio tudo através de segredos de ambiente:
+- **Segurança no CI/CD**: Utilizo **GitHub Secrets**.
+- **Segurança em Produção**: Configurei as variáveis diretamente nos painéis de controle dos provedores (Render/Neon).
+
+### Minhas Variáveis Críticas:
+- `DATABASE_URL`: Minha conexão segura com o Neon.
+- `REDIS_URL`: Minha ponte para o cache no Upstash.
+- `TMDB_ACCESS_TOKEN`: Minha chave privada para o catálogo externo.
+
+---
+
+## Observações de Performance (Plano Gratuito)
+Como estou utilizando os níveis gratuitos:
+- **Cold Start**: Notei que a API no Render entra em repouso após 15 minutos sem uso. Eu compensei isso estruturando o sistema para ser o mais leve possível no boot.
+- **Neon Autoscaling**: O banco também escala para zero quando eu não estou trabalhando, o que preserva os meus recursos.

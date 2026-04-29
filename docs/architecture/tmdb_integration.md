@@ -1,45 +1,34 @@
-# Integração TMDb & Estratégia de Cache (BFF)
+# Minha Integração TMDb & Estratégia de Cache (BFF)
 
-Este documento detalha a arquitetura da camada de integração com a The Movie Database (TMDb) e a estratégia de caching adotada no **StreamingCatalog**.
+Neste documento, eu detalho como construí a camada de integração com a API do TMDb e as decisões que tomei para garantir performance e economia de recursos.
 
-## 1. Arquitetura BFF (Backend For Frontend)
+## 1. Minha Visão de BFF (Backend For Frontend)
 
-Ao invés do Frontend em React consumir a API do TMDb diretamente (o que exporia meu `ACCESS_TOKEN` no navegador do usuário e esgotaria minha cota de API rapidamente), a minha `catalog-api` (NestJS) atua como um **Proxy Inteligente**.
+Eu decidi que o Frontend nunca deveria consumir o TMDb diretamente. Em vez disso, transformei minha `catalog-api` em um **Proxy Inteligente**. 
 
-O Frontend faz as requisições para os meus endpoints protegidos, e eu repasso para o TMDb de forma segura utilizando o `@nestjs/axios`.
+### Por que fiz isso?
+- **Segurança de Segredos:** Eu mantenho meu `TMDB_ACCESS_TOKEN` protegido no servidor, longe do navegador do usuário.
+- **Economia de Cota:** Ao centralizar as chamadas, eu consegui implementar uma camada de cache que reduz agressivamente o consumo da API externa.
+- **Resiliência:** Se o TMDb estiver lento ou instável, eu consigo gerenciar os timeouts e erros de forma amigável para o meu frontend.
 
-### Benefícios:
-- **Segurança Oculta:** O `TMDB_ACCESS_TOKEN` vive exclusivamente no cofre do backend (GitHub Secrets / Render Auth).
-- **Controle de Rate Limit:** Reduzi drasticamente as chamadas externas, mitigando riscos de bloqueio da minha conta no TMDb.
-- **Padronização:** Erros oriundos do TMDb são interceptados pelo meu `HttpExceptionFilter` e formatados no padrão esperado pelo Frontend.
+## 2. Minha Estratégia de Caching e Performance
 
----
+Eu utilizei o **Redis (Upstash)** para armazenar as respostas do TMDb. No entanto, eu não apenas "salvo os dados"; eu projetei um sistema de **Graceful Degradation** dentro do meu `TmdbService`.
 
-## 2. Estratégia de Caching (Upstash Redis)
+### Como o meu Cache funciona:
+1. **Busca Inteligente**: Eu tento recuperar os dados do Redis primeiro.
+2. **Fallback Automático**: Se o Redis falhar por qualquer motivo (latência ou queda), eu capturei o erro e fiz o sistema buscar os dados diretamente da API original. O usuário nunca percebe que o cache falhou.
+3. **Constantes Centralizadas**: Eu eliminei "magic numbers". Todos os tempos de vida (TTL) são gerenciados centralmente em `src/common/constants/cache.constants.ts`.
 
-O uso de Cache é vital. Rotas como "Filmes Populares" (Trending) retornam a mesma lista o dia inteiro. Buscar isso na internet a cada clique de usuário derrubaria a performance do sistema.
-
-Utilizei o `@nestjs/cache-manager` impulsionado pelo adaptador `@keyv/redis` para me comunicar com o meu banco Serverless **Upstash Redis**.
-
-### Tabelas de TTL (Time To Live)
-
-Para maximizar a eficiência, diferentes rotas possuem tempos de expiração variados utilizando o decorator `@CacheTTL()` na camada do `TmdbController`:
-
-| Rota BFF | TTL (Tempo de Vida) | Justificativa |
+### Meus Tempos de Cache:
+| Recurso | TTL | Justificativa |
 | :--- | :--- | :--- |
-| `GET /tmdb/trending` | **12 Horas** | A lista de "Filmes Populares do dia" do TMDb não muda bruscamente. Manter em cache economiza milhares de requisições por dia. |
-| `GET /tmdb/search` | **5 Minutos** | Buscas tendem a ser efêmeras, mas usuários costumam digitar as mesmas coisas ("avatar", "matrix"). O micro-cache evita picos de pesquisa. |
-| `GET /tmdb/details/:type/:id`| **24 Horas** | Filmes clássicos e dados de elenco não mudam. Manter em cache alto garante carregamento instantâneo da tela de "Detalhes". |
+| Trending | 12 Horas | Filmes populares mudam pouco ao longo do dia. |
+| Search | 5 Minutos | Evito que pesquisas idênticas sobrecarreguem o sistema. |
+| Details | 24 Horas | Dados técnicos de filmes são estáticos. |
 
-> **Nota Técnica de Implementação:** Optei por amarrar a persistência do Redis no nível de **Interceptor** (`@UseInterceptors(CacheInterceptor)`) diretamente nas Rotas (`Controllers`), permitindo que as chaves de busca e queries sejam automaticamente mapeadas pela engine do NestJS, retirando a complexidade de chaveamento manual de dentro do Service.
+## 3. Minha Suite de Testes E2E
 
----
-
-## 3. Estratégia de Isolamento de Testes E2E
-
-Para garantir a confiabilidade dos testes automatizados e o verde constante das esteiras CI/CD (GitHub Actions), toda a camada do TMDb foi isolada no arquivo `tmdb.e2e-spec.ts`.
-
-Nessas execuções, o sistema:
-1. Sofre um *Override* no `HttpService` injetando Respostas Vazias (Evitando bater de verdade no TMDb).
-2. Sofre um *Override* global no `JwtAuthGuard` (Evitando inserir um banco de dados gigantesco apenas para forjar um token de acesso).
-3. Sofre um *Override* inteligente no `CACHE_MANAGER` utilizando um objeto nativo do JavaScript (`new Map()`), permitindo testar se o mecanismo de interceptação de Cache funciona, mas sem depender localmente de um contêiner Docker rodando o Redis na porta `6380`.
+Para garantir que minha integração nunca quebre, eu criei testes que:
+1. **Simulam o TMDb**: Eu faço um override no `HttpService` para não gastar minha cota durante os testes.
+2. **Simulam o Redis**: Eu substituo o Redis real por um `Map` em memória durante a execução dos testes E2E, garantindo velocidade e independência de infraestrutura externa.
