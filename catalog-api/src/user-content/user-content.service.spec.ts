@@ -78,12 +78,12 @@ describe('UserContentService', () => {
   describe('findAll', () => {
     it('should return all content for a user', async () => {
       const userId = 1;
-      const mockResult = [{ id: 1, tmdbId: '123' }];
-      mockPrismaService.userContent.findMany.mockResolvedValue(mockResult);
+      const expectedResult = [{ id: 1, tmdbId: '123' }];
+      mockPrismaService.userContent.findMany.mockResolvedValue(expectedResult);
 
       const result = await service.findAll(userId);
 
-      expect(result).toEqual(mockResult);
+      expect(result).toEqual(expectedResult);
       expect(prisma.userContent.findMany).toHaveBeenCalledWith({
         where: { userId },
         orderBy: { updatedAt: 'desc' },
@@ -107,12 +107,12 @@ describe('UserContentService', () => {
       const userId = 1;
       const tmdbId = '123';
       const type = ContentType.MOVIE;
-      const mockResult = { id: 1, tmdbId, type };
-      mockPrismaService.userContent.findUnique.mockResolvedValue(mockResult);
+      const expectedRecord = { id: 1, tmdbId, type };
+      mockPrismaService.userContent.findUnique.mockResolvedValue(expectedRecord);
 
       const result = await service.findOne(userId, type, tmdbId);
 
-      expect(result).toEqual(mockResult);
+      expect(result).toEqual(expectedRecord);
     });
 
     it('should throw NotFoundException if record does not exist', async () => {

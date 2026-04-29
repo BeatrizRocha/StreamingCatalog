@@ -1,32 +1,24 @@
-# 🚀 Minha API (catalog-api)
+# 🚀 catalog-api (Backend)
 
-Este módulo é o coração do projeto. Eu o construí para servir como um **BFF (Backend For Frontend)** robusto, seguro e altamente performático.
+Este módulo implementa o **BFF (Backend For Frontend)** do projeto, responsável pela agregação de dados do TMDb, autenticação de usuários e persistência de preferências.
 
-## 🛠️ Tecnologias que Escolhi
-- **Framework**: NestJS (para uma arquitetura modular e escalável).
-- **ORM**: Prisma 7 (com PostgreSQL).
-- **Segurança**: Passport JWT + Bcrypt + Rate Limiting.
-- **Documentação**: Swagger / OpenAPI 3.0.
+## 🛠️ Decisões Tecnológicas
+- **Framework**: [NestJS](https://nestjs.com/) (Arquitetura modular e injeção de dependência).
+- **ORM**: [Prisma 7](https://www.prisma.io/) (Tipagem forte e sincronização de esquema).
+- **Segurança**: Throttler (limitação de taxa) e JWT (sessões stateless).
 
-## 📖 Minha Documentação Interativa
-Eu configurei o Swagger para que você possa testar todos os meus endpoints em tempo real:
-- **Ambiente Local**: `http://localhost:3000/api/docs`
-- **Link de Produção**: `https://streaming-catalog-api-jfjb.onrender.com/api/docs`
-
-## 🗄️ Como eu Gerencio o Banco de Dados
-Sempre que eu faço uma alteração estrutural no `schema.prisma`, eu sigo este fluxo:
+## 🗄️ Ciclo de Vida do Banco de Dados
+Para evoluir o esquema:
 ```bash
-npx prisma generate  # Eu atualizo meus tipos do TypeScript
-npx prisma db push   # Eu sincronizo as alterações com o banco
+npx prisma db push   # Sincroniza o schema.prisma com o banco
 ```
 
-## 🧪 Meus Comandos de Verificação
-Eu mantenho o projeto saudável com estes scripts:
+## 🧪 Estratégia de Testes
+A qualidade é mantida através de testes unitários e de integração (E2E):
 ```bash
-npm run start:dev   # Eu inicio o desenvolvimento local
-npm run test        # Eu executo meus testes unitários
-npm run test:e2e    # Eu valido o fluxo completo com banco isolado
+npm run test        # Validação de lógica isolada
+npm run test:e2e    # Validação de fluxos de integração
 ```
 
-## 🛡️ Camada de Segurança
-Implementei um limite de requisições global. Se você receber um erro `429 (Too Many Requests)`, significa que excedeu o meu limite de segurança de 10 chamadas por minuto.
+## 🛡️ Notas de Segurança
+A API implementa **Rate Limiting** global. Em caso de erro `429`, verifique se o limite de 10 requisições por minuto foi excedido. O endpoint raiz (`/`) está isento desta regra para permitir o monitoramento de saúde do provedor de nuvem.

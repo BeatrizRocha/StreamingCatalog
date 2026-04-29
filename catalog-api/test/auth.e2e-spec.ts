@@ -26,19 +26,22 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
-  it('/auth/register (POST)', () => {
-    return request(app.getHttpServer())
+  it('/auth/register (POST)', async () => {
+    const res = await request(app.getHttpServer())
       .post('/auth/register')
       .send({
         email: 'e2e@test.com',
         password: 'password123',
         name: 'E2E User',
       })
-      .expect(201)
-      .expect((res) => {
-        expect(res.body).toHaveProperty('id');
-        expect(res.body.email).toEqual('e2e@test.com');
-      });
+      .expect(201);
+
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.email).toEqual('e2e@test.com');
+
+    const userInDb = await prisma.user.findUnique({ where: { email: 'e2e@test.com' } });
+    expect(userInDb).toBeDefined();
+    expect(userInDb?.name).toEqual('E2E User');
   });
 
   it('/auth/login (POST)', () => {

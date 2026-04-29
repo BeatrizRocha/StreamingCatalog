@@ -13,6 +13,11 @@ export class UserController {
   @ApiBearerAuth()
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
+  /**
+   * Note: The 'create' method is intentionally omitted from this controller 
+   * as user registration is handled by the AuthService.register(dto) flow 
+   * to ensure security and proper JWT emission upon account creation.
+   */
   getProfile(@CurrentUser() user: any) {
     return user;
   }

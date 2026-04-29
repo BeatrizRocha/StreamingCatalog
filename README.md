@@ -1,79 +1,60 @@
 # StreamingCatalog 🎬
 
-![Status](https://img.shields.io/badge/Status-Cloud_Integrated-brightgreen)
-![CI/CD](https://img.shields.io/badge/CI/CD-Active-blue)
-![Backend](https://img.shields.io/badge/Backend-NestJS_11-red)
-![Database](https://img.shields.io/badge/Database-PostgreSQL_|_Redis-blue)
-![Security](https://img.shields.io/badge/Security-Rate_Limited-yellow)
+[![Production API](https://img.shields.io/badge/API-Live-brightgreen)](https://streaming-catalog-api-jfjb.onrender.com/api/docs)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
-O **StreamingCatalog** é a minha plataforma full-stack para gerenciamento e descoberta de conteúdo audiovisual. Desenvolvi este projeto para demonstrar uma arquitetura moderna de **BFF (Backend For Frontend)**, com foco total em performance, segurança e resiliência.
+Interface para gerenciamento e descoberta de conteúdo audiovisual. Este projeto foi estruturado para demonstrar a aplicação de padrões de **BFF (Backend For Frontend)** e resiliência em sistemas distribuídos.
 
-## 📂 Minha Documentação Detalhada
-Eu estruturei a documentação para que você possa entender cada decisão técnica que tomei:
-- [Minha Infraestrutura em Nuvem (Cloud)](docs/architecture/infrastructure.md)
-- [Meu Fluxo de Autenticação e Segurança](docs/architecture/auth.md)
-- [Integração TMDb & Estratégia de Cache](docs/architecture/tmdb_integration.md)
-- [Persistência de Conteúdo (UserContent)](docs/architecture/user_content.md)
-- [Modelagem de Banco de Dados](docs/architecture/database.md)
+## 🏗️ Racional Arquitetural
 
-## 🏗️ Estrutura que Escolhi
-Organizei o projeto como um monorepo para facilitar a gestão dos contratos:
-- `catalog-api/`: Meu backend robusto construído com NestJS, Prisma 7 e PostgreSQL.
-- `catalog-web/`: Minha interface moderna construída com React e Tailwind CSS (Em desenvolvimento).
-- `docs/`: Onde eu detalho minha visão arquitetural.
+### Por que NestJS e MVC?
+Optei pelo **NestJS** por sua arquitetura modular e suporte nativo a injeção de dependência. Isso permite que cada módulo (`Auth`, `Tmdb`, `UserContent`) seja desenvolvido e testado isoladamente, seguindo os princípios de responsabilidade única. O padrão **MVC** no backend padroniza a entrada de dados e a comunicação com a camada de serviço, facilitando a escalabilidade.
+
+### Por que Monorepo?
+O projeto utiliza uma estrutura de monorepo para garantir a consistência entre o contrato da API e o consumo no Frontend. Isso facilita o compartilhamento de tipos e DTOs, reduzindo erros de dessincronização durante o desenvolvimento.
+
+### Por que BFF (Backend For Frontend)?
+A `catalog-api` atua como um proxy para o TMDb. Essa escolha foi feita para:
+1. **Segurança**: Manter chaves de API ocultas do cliente.
+2. **Performance**: Implementar camadas de cache centralizadas via Redis.
+3. **Resiliência**: Tratar falhas de serviços externos sem comprometer a experiência do usuário.
+
+## 📂 Documentação Técnica
+- [Infraestrutura e Pipeline CI/CD](docs/architecture/infrastructure.md)
+- [Estratégia de Autenticação e Segurança](docs/architecture/auth.md)
+- [Integração TMDb e Resiliência de Cache](docs/architecture/tmdb_integration.md)
+- [Persistência de Dados e Modelagem](docs/architecture/database.md)
 
 ---
 
-## 🚀 Como Executar o Meu Projeto
+## 🚀 Guia de Setup
 
 ### Pré-requisitos
-- Node.js (v20 ou superior)
-- Docker e Docker Compose
+- Node.js (v20+)
+- Docker
 
-### 1. Clonar e Instalar
-```bash
-git clone https://github.com/BeatrizRocha/StreamingCatalog.git
-cd StreamingCatalog
-```
+### Execução em Desenvolvimento
+1.  **Instalação**: `npm install` na raiz.
+2.  **Variáveis**: Copie os arquivos `.env.example` para `.env` no diretório `catalog-api`.
+3.  **Infraestrutura**: `docker-compose up -d` para subir PostgreSQL e Redis.
+4.  **Backend**: 
+    ```bash
+    cd catalog-api
+    npx prisma db push
+    npm run start:dev
+    ```
 
-### 2. Configurar o Ambiente
-Eu preparei templates para facilitar o seu setup:
-```bash
-cp catalog-api/.env.example catalog-api/.env
-cp catalog-api/.env.test.example catalog-api/.env.test
-```
+---
 
-### 3. Subir a Infraestrutura (Docker)
-Eu automatizei o PostgreSQL e o Redis via Docker:
-```bash
-docker-compose up -d
-```
+## 🧪 Estratégia de Testes
+O projeto segue a pirâmide de testes para garantir a cobertura das regras de negócio e caminhos críticos:
 
-### 4. Rodar a API
+- **Unitários**: Focados na lógica de serviços e validadores.
+- **E2E (End-to-End)**: Validam o fluxo completo da API utilizando um banco de dados PostgreSQL isolado para garantir que o ambiente de dev não seja afetado.
+
 ```bash
+# Executar todos os testes
 cd catalog-api
-npm install
-npx prisma db push
-npm run start:dev
+npm run test      # Unitários
+npm run test:e2e  # E2E
 ```
-A API estará disponível em `http://localhost:3000` e eu já configurei o Swagger em `http://localhost:3000/api/docs`.
-
----
-
-## 🧪 Qualidade e Testes
-Garanto a integridade do meu código através de uma suite rigorosa:
-
-```bash
-# Meus Testes de Unidade
-npm run test
-
-# Meus Testes E2E (Utilizam um banco isolado e limpo automaticamente)
-npm run test:e2e
-```
-
----
-
-## 🛡️ Segurança e Resiliência
-- **Rate Limiting**: Implementei proteção global (10 req/min) para garantir a saúde da API.
-- **Cache Fallback**: Minha integração com TMDb possui um sistema de fallback; se o Redis falhar, eu busco os dados em tempo real sem interromper o serviço.
-- **Autenticação**: Utilizo JWT Stateless com Bcrypt para garantir sessões seguras e escaláveis.

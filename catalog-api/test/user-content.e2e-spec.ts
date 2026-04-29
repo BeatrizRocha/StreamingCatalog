@@ -48,7 +48,7 @@ describe('UserContentController (e2e)', () => {
 
   describe('/user-content (POST) - Upsert', () => {
     it('should create new content entry', async () => {
-      const payload = {
+      const expectation = {
         tmdbId: '69478',
         type: ContentType.TV,
         status: ContentStatus.WATCHLIST,
@@ -58,11 +58,17 @@ describe('UserContentController (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/user-content')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send(payload)
+        .send(expectation)
         .expect(201);
 
-      expect(res.body.tmdbId).toEqual(payload.tmdbId);
-      expect(res.body.status).toEqual(payload.status);
+      expect(res.body.tmdbId).toEqual(expectation.tmdbId);
+      expect(res.body.status).toEqual(expectation.status);
+
+      const dbRecord = await prisma.userContent.findFirst({
+        where: { userId, tmdbId: expectation.tmdbId }
+      });
+      expect(dbRecord).toBeDefined();
+      expect(dbRecord?.title).toEqual(expectation.title);
     });
 
     it('should update existing content (Upsert)', async () => {
@@ -145,7 +151,6 @@ describe('UserContentController (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      // Verify deletion
       await request(app.getHttpServer())
         .get(`/user-content/${ContentType.TV}/69478`)
         .set('Authorization', `Bearer ${accessToken}`)
